@@ -1,6 +1,6 @@
 <p align="center"><a href="https://emcash.com.br/" target="_blank"><img src="https://emcash.com.br/wp-content/uploads/2023/03/emcash-logo_ALTA-01.png" width="600" alt="Emcash"></a></p>
 
-# Here are some tips to start
+# Here are some tips to start 🚀
 
 * This project utilizes Laravel Lumen
 
