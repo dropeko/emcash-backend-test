@@ -13,25 +13,24 @@ class CsvDataValidator implements FileDataValidatorInterface
 
     public function validateMimeType(string $mimeType): void
     {
-        if () {
+        if (empty($mimeType)) {
             throw new DataValidationException('The file mimeType cannot be empty');
         }
-
-        if () {
+        if ($mimeType !== self::VALID_MIME_TYPE) {
             throw new DataValidationException('The file type is not valid');
         }
     }
 
     public function validateContent(string $content): void
     {
-        if () {
-            throw new DataValidationException('The file Content cannot be empty');
+        if (empty(trim($content))) {
+            throw new DataValidationException('The file content cannot be empty');
         }
     }
 
     public function validateSizeInBytes(int $sizeInBytes): void
     {
-        if () {
+        if ($sizeInBytes < self::MIN_SIZE_IN_BYTES || $sizeInBytes > self::MAX_SIZE_IN_BYTES) {
             throw new DataValidationException('The file size is not valid');
         }
     }

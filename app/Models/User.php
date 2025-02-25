@@ -14,23 +14,12 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     use Authenticatable, Authorizable, HasFactory;
 
     protected $table = 'user';
-
     protected $primaryKey = 'id';
     public $incrementing = false;
     protected $keyType = 'string';
 
     /**
      * Os atributos que podem ser preenchidos em massa.
-     * 
-     * Note que o arquivo CSV contém as colunas:
-     * - name
-     * - cpf
-     * - email
-     * - data_admissao
-     *
-     * Além disso, para atender à regra de negócio, incluímos:
-     * - company: Identifica a empresa parceira (pode ser definida posteriormente)
-     * - active: Indica se o funcionário está ativo (deve ser true para elegibilidade)
      *
      * @var array
      */
@@ -44,7 +33,7 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     ];
 
     /**
-     * Atributos que devem ser ocultados na conversão para JSON.
+     * Atributos ocultos na conversão para JSON.
      *
      * @var array
      */

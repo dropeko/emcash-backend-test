@@ -34,10 +34,7 @@ class UserFactory extends Factory
             'cpf'            => $this->faker->unique()->numerify('###########'),
             'email'          => $this->faker->unique()->safeEmail,
             'admission_date' => $admissionDate->format('Y-m-d'),
-            // Considerando que o funcionário está vinculado a uma única empresa parceira,
-            // o nome da empresa é gerado aleatoriamente.
             'company'        => $this->faker->company,
-            // O funcionário precisa estar ativo para se qualificar.
             'active'         => true,
         ];
     }

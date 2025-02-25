@@ -77,16 +77,21 @@
                 "tags": [
                     "User"
                 ],
-                "summary": "Importação de usuário através de arquivo CSV",
+                "summary": "Importação de usuário através de arquivo CSV novo",
                 "operationId": "3b92306356b96afc344e4f4dfffa4528",
                 "requestBody": {
+                    "required": true,
                     "content": {
-                        "text/csv": {
+                        "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "file"
+                                ],
                                 "properties": {
                                     "file": {
+                                        "description": "Campo do tipo arquivo, com o nome 'file', que recebe o arquivo CSV com os dados dos usuários",
                                         "type": "string",
-                                        "default": "Campo do tipo arquivo, com o nome 'file', que recebe o arquivo CSV com os dados dos usuários"
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -174,6 +179,78 @@
                                             "cpf": "2023-12-28 04:10:10"
                                         }
                                     ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/{id}": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Retorna os dados de um usuário específico por ID",
+                "description": "Retorna os dados de um usuário específico por ID.",
+                "operationId": "df8a91e01ad660f9fb7ab052c8f49f7c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "cpf": {
+                                            "type": "string"
+                                        },
+                                        "data_admissao": {
+                                            "type": "string"
+                                        },
+                                        "company": {
+                                            "type": "string"
+                                        },
+                                        "active": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }

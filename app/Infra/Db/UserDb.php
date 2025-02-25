@@ -9,31 +9,41 @@ use Illuminate\Support\Facades\DB;
 
 class UserDb implements UserPersistenceInterface
 {
-    private const TABLE_NAME = '';
-
-    private const COLUMN_UUID = '';
-    private const COLUMN_NAME = '';
-    private const COLUMN_EMAIL = '';
-    private const COLUMN_CPF = '';
-    private const COLUMN_CREATED_AT = '';
-    private const COLUMN_DELETED_AT = '';
-    private const COLUMN_UPDATED_AT = '';
+    private const TABLE_NAME = 'user';
+    private const COLUMN_UUID = 'id';
+    private const COLUMN_NAME = 'name';
+    private const COLUMN_EMAIL = 'email';
+    private const COLUMN_CPF = 'cpf';
+    private const COLUMN_DATA_ADMISSAO = 'data_admissao';
+    private const COLUMN_COMPANY = 'company';
+    private const COLUMN_ACTIVE = 'active';
+    private const COLUMN_CREATED_AT = 'created_at';
+    private const COLUMN_DELETED_AT = 'deleted_at';
+    private const COLUMN_UPDATED_AT = 'updated_at';
 
     public function create(User $user): void
     {
         DB::table(self::TABLE_NAME)->insert([
-            self::COLUMN_UUID => $user->getId(),
-            self::COLUMN_NAME => $user->getName(),
-            self::COLUMN_EMAIL => $user->getEmail(),
-            self::COLUMN_CPF => $user->getCpf(),
-            self::COLUMN_CREATED_AT => $user->getDateCreation(),
+            self::COLUMN_UUID       => $user->getId(),
+            self::COLUMN_NAME         => $user->getName(),
+            self::COLUMN_EMAIL        => $user->getEmail(),
+            self::COLUMN_CPF          => $user->getCpf(),
+            self::COLUMN_DATA_ADMISSAO  => $user->getDataAdmissao(),
+            self::COLUMN_COMPANY      => $user->getCompany(),
+            self::COLUMN_ACTIVE       => $user->isActive(),
+            self::COLUMN_CREATED_AT   => $user->getDateCreation(),
         ]);
     }
 
-    public function findAll(User $user): array
+    /**
+     * Retorna todos os usuários ativos (não deletados).
+     *
+     * @param User $user
+     * @return array
+     */
+    public function findAll($user): array
     {
         $users = [];
-
         $records = DB::table(self::TABLE_NAME)
             ->select([
                 self::COLUMN_UUID,
@@ -41,22 +51,97 @@ class UserDb implements UserPersistenceInterface
                 self::COLUMN_EMAIL,
                 self::COLUMN_CPF,
             ])
-            ->where([
-                self::COLUMN_DELETED_AT => null
-            ])
-            ->get()
-        ;
-
+            ->whereNull(self::COLUMN_DELETED_AT)
+            ->get();
         foreach ($records as $record) {
-            $users[] = (new User(new UserDb()))
+            $users[] = (new User(new self()))
                 ->setDataValidator(new UserDataValidator())
-                ->setId($record->uuid)
+                ->setId($record->id)
                 ->setName($record->name)
                 ->setCpf($record->cpf)
-                ->setEmail($record->email)
-            ;
+                ->setEmail($record->email);
         }
-
         return $users;
+    }
+
+    /**
+     * Busca um usuário pelo ID.
+     *
+     * @param string $id
+     * @return User|null
+     */
+    public function findById(string $id): ?User
+    {
+        $record = DB::table(self::TABLE_NAME)
+            ->where(self::COLUMN_UUID, $id)
+            ->whereNull(self::COLUMN_DELETED_AT)
+            ->first();
+        if (!$record) {
+            return null;
+        }
+        return User::fromRecord($record, new self());
+    }
+
+    /**
+     * Verifica se o CPF já foi criado.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function isCpfAlreadyCreated(User $user): bool
+    {
+        $cpf = $user->getCpf();
+        $record = DB::table(self::TABLE_NAME)
+            ->where(self::COLUMN_CPF, $cpf)
+            ->whereNull(self::COLUMN_DELETED_AT)
+            ->first();
+        return $record ? true : false;
+    }
+
+    /**
+     * Verifica se o Email já foi criado.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function isEmailAlreadyCreated(User $user): bool
+    {
+        $email = $user->getEmail();
+        $record = DB::table(self::TABLE_NAME)
+            ->where(self::COLUMN_EMAIL, $email)
+            ->whereNull(self::COLUMN_DELETED_AT)
+            ->first();
+        return $record ? true : false;
+    }
+
+    /**
+     * Verifica se o ID do usuário existe.
+     *
+     * @param User $user
+     * @return bool
+     */
+    public function isExistentId(User $user): bool
+    {
+        $id = $user->getId();
+        $record = DB::table(self::TABLE_NAME)
+            ->where(self::COLUMN_UUID, $id)
+            ->whereNull(self::COLUMN_DELETED_AT)
+            ->first();
+        return $record ? true : false;
+    }
+
+    /**
+     * Edita o nome do usuário.
+     *
+     * @param User $user
+     */
+    public function editName(User $user): void
+    {
+        DB::table(self::TABLE_NAME)
+            ->where(self::COLUMN_UUID, $user->getId())
+            ->update([
+                self::COLUMN_NAME => $user->getName(),
+                self::COLUMN_UPDATED_AT => now(),
+            ]);
     }
 }
