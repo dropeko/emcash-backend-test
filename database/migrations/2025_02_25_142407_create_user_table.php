@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('cpf')->unique();
             $table->string('email')->unique();
-            $table->date('admission_date');
+            $table->date('data_admissao');
             // Campo para identificar a empresa parceira (única por funcionário)
             $table->string('company');
             // Status do funcionário: ativo ou inativo

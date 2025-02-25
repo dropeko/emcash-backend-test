@@ -33,7 +33,7 @@ class UserFactory extends Factory
             'name'           => $this->faker->name,
             'cpf'            => $this->faker->unique()->numerify('###########'),
             'email'          => $this->faker->unique()->safeEmail,
-            'admission_date' => $admissionDate->format('Y-m-d'),
+            'data_admissao' => $admissionDate->format('Y-m-d'),
             'company'        => $this->faker->company,
             'active'         => true,
         ];

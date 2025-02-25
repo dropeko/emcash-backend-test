@@ -300,6 +300,89 @@ class UserController extends Controller
         }
     }
 
+        /**
+     * Retorna a elegibilidade do funcionário para solicitação de crédito consignado.
+     *
+     * @OA\Get(
+     *     path="/user/{id}/eligibility",
+     *     summary="Retorna a elegibilidade do funcionário para solicitação de crédito consignado",
+     *     tags={"User"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do usuário",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Elegibility status",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="eligible", type="boolean"),
+     *                 @OA\Property(property="reasons", type="array", @OA\Items(type="string"))
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="User not found",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="message", type="string", example="User not found")
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function eligibility(Request $request, string $id): JsonResponse
+    {
+        try {
+            $userDb = new UserDb();
+            $user = $userDb->findById($id);
+            if (!$user) {
+                return $this->buildNotFoundResponse("User not found");
+            }
+            // Calcula o tempo de serviço (em meses) a partir da data de admissão.
+            $admissionDate = new \DateTime($user->getDataAdmissao());
+            $now = new \DateTime();
+            $interval = $admissionDate->diff($now);
+            $months = $interval->y * 12 + $interval->m;
+            $eligible = true;
+            $reasons = [];
+
+            // Regra 1: Deve ter mais de 6 meses de serviço.
+            if ($months < 6) {
+                $eligible = false;
+                $reasons[] = "Employee must have more than 6 months of service.";
+            }
+            // Regra 2: O funcionário deve estar ativo.
+            if (!$user->isActive()) {
+                $eligible = false;
+                $reasons[] = "Employee is not active.";
+            }
+            // Regra 3: O funcionário deve ter uma empresa cadastrada.
+            if (empty($user->getCompany())) {
+                $eligible = false;
+                $reasons[] = "Employee is not registered in a partner company.";
+            }
+            // Regra 4: O funcionário não pode ter sido admitido há mais de X anos (ex: 30 anos).
+            $maxYears = 30;
+            if ($interval->y > $maxYears) {
+                $eligible = false;
+                $reasons[] = "Employee was admitted more than {$maxYears} years ago.";
+            }
+            return $this->buildSuccessResponse([
+                'eligible' => $eligible,
+                'reasons'  => $eligible ? [] : $reasons,
+            ]);
+        } catch (\Exception $e) {
+            return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
+        }
+    }
+
     // Métodos auxiliares de resposta - agora declarados como public
     // Mover lógica dos métodos auxliares para a classe Controller
     public function buildSuccessResponse($data, $status = 200): JsonResponse
