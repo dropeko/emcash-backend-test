@@ -12,4 +12,5 @@ interface UserPersistenceInterface
     public function editName(User $user): void;
     public function findById(string $id): ?User;
     public function softDelete(User $user): void;
+    public function update(User $user): void;
 }

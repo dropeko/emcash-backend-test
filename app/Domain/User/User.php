@@ -26,6 +26,7 @@ class User
     public function __construct(UserPersistenceInterface $persistence)
     {
         $this->persistence = $persistence;
+        $this->dataValidator = new \App\Domain\User\UserDataValidator();
     }
 
     public function setDataValidator(UserDataValidatorInterface $dataValidator): User

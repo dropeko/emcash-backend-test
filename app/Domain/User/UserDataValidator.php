@@ -50,8 +50,7 @@ class UserDataValidator implements UserDataValidatorInterface
 
     public function validateCpf(string $cpf): void
     {
-        // Cria uma instância de Cpf com o valor recebido e valida
-        if (!(new Cpf($cpf))->isValid()) {
+        if (strlen($cpf) !== 11) {
             throw new DataValidationException('The user cpf is not valid');
         }
     }
