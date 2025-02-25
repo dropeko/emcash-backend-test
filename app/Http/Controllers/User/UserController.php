@@ -383,6 +383,57 @@ class UserController extends Controller
         }
     }
 
+        /**
+     * Realiza o soft delete de um usuário.
+     *
+     * @OA\Delete(
+     *     path="/user/{id}",
+     *     summary="Realiza o soft delete de um usuário",
+     *     tags={"User"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do usuário a ser removido",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="User soft deleted successfully",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="message", type="string", example="User soft deleted successfully")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="User not found",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="message", type="string", example="User not found")
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function delete(Request $request, string $id): JsonResponse
+    {
+        try {
+            $userDb = new UserDb();
+            $user = $userDb->findById($id);
+            if (!$user) {
+                return $this->buildNotFoundResponse("User not found");
+            }
+            $userDb->softDelete($user);
+            return $this->buildSuccessResponse(["message" => "User soft deleted successfully"]);
+        } catch (\Exception $e) {
+            return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
+        }
+    }
+
     // Métodos auxiliares de resposta - agora declarados como public
     // Mover lógica dos métodos auxliares para a classe Controller
     public function buildSuccessResponse($data, $status = 200): JsonResponse

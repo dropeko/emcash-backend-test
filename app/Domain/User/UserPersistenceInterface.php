@@ -11,4 +11,5 @@ interface UserPersistenceInterface
     public function isExistentId(User $user): bool;
     public function editName(User $user): void;
     public function findById(string $id): ?User;
+    public function softDelete(User $user): void;
 }
