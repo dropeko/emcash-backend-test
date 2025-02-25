@@ -144,4 +144,13 @@ class UserDb implements UserPersistenceInterface
                 self::COLUMN_UPDATED_AT => now(),
             ]);
     }
+
+    public function softDelete(User $user): void
+    {
+        DB::table(self::TABLE_NAME)
+            ->where(self::COLUMN_UUID, $user->getId())
+            ->update([
+                self::COLUMN_DELETED_AT => \Carbon\Carbon::now(),
+            ]);
+    }
 }
