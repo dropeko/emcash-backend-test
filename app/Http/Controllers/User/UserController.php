@@ -434,6 +434,95 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * Atualiza as informações (nome, CPF e email) de um usuário específico.
+     *
+     * @OA\Put(
+     *     path="/user/{id}",
+     *     summary="Atualiza as informações (nome, CPF e email) de um usuário",
+     *     tags={"User"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID do usuário a ser atualizado",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 required={"name","cpf","email"},
+     *                 @OA\Property(property="name", type="string", example="Novo Nome"),
+     *                 @OA\Property(property="cpf", type="string", example="12345678901"),
+     *                 @OA\Property(property="email", type="string", example="novo.email@example.com")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="User updated successfully",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="id", type="string"),
+     *                 @OA\Property(property="name", type="string"),
+     *                 @OA\Property(property="cpf", type="string"),
+     *                 @OA\Property(property="email", type="string")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="User not found",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(property="message", type="string", example="User not found")
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function update(Request $request, string $id): JsonResponse
+    {
+        try {
+            // Valida os dados enviados
+            $this->validate($request, [
+                'name'  => 'required|string|max:100',
+                'cpf'   => 'required|string',
+                'email' => 'required|email|max:100',
+            ]);
+
+            $userDb = new UserDb();
+            $user = $userDb->findById($id);
+            if (!$user) {
+                return $this->buildNotFoundResponse("User not found");
+            }
+
+            // Atualiza os dados
+            $user->setName($request->input('name'));
+            $user->setCpf($request->input('cpf'));
+            $user->setEmail($request->input('email'));
+
+            // Chama o repositório para atualizar o registro
+            $userDb->update($user);
+
+            // Retorna os dados atualizados
+            $response = [
+                'id'    => $user->getId(),
+                'name'  => $user->getName(),
+                'cpf'   => $user->getCpf(),
+                'email' => $user->getEmail(),
+            ];
+            return $this->buildSuccessResponse($response);
+        } catch (\Exception $e) {
+            return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
+        }
+    }
+
     // Métodos auxiliares de resposta - agora declarados como public
     // Mover lógica dos métodos auxliares para a classe Controller
     public function buildSuccessResponse($data, $status = 200): JsonResponse

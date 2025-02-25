@@ -153,4 +153,16 @@ class UserDb implements UserPersistenceInterface
                 self::COLUMN_DELETED_AT => \Carbon\Carbon::now(),
             ]);
     }
+
+    public function update(User $user): void
+    {
+        DB::table(self::TABLE_NAME)
+            ->where(self::COLUMN_UUID, $user->getId())
+            ->update([
+                self::COLUMN_NAME  => $user->getName(),
+                self::COLUMN_CPF   => $user->getCpf(),
+                self::COLUMN_EMAIL => $user->getEmail(),
+                self::COLUMN_UPDATED_AT => \Carbon\Carbon::now(),
+            ]);
+    }
 }
