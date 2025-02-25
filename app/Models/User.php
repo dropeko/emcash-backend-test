@@ -15,19 +15,38 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
 
     protected $table = 'user';
 
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     /**
-     * The attributes that are mass assignable.
+     * Os atributos que podem ser preenchidos em massa.
+     * 
+     * Note que o arquivo CSV contém as colunas:
+     * - name
+     * - cpf
+     * - email
+     * - data_admissao
      *
-     * @var string[]
+     * Além disso, para atender à regra de negócio, incluímos:
+     * - company: Identifica a empresa parceira (pode ser definida posteriormente)
+     * - active: Indica se o funcionário está ativo (deve ser true para elegibilidade)
+     *
+     * @var array
      */
     protected $fillable = [
-        'uuid', 'name', 'email', 'cpf', 'created_at'
+        'name',
+        'cpf',
+        'email',
+        'data_admissao',
+        'company',
+        'active'
     ];
 
     /**
-     * The attributes excluded from the model's JSON form.
+     * Atributos que devem ser ocultados na conversão para JSON.
      *
-     * @var string[]
+     * @var array
      */
     protected $hidden = [
         'password',
