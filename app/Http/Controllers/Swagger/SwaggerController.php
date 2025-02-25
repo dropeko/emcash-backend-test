@@ -14,6 +14,7 @@ namespace App\Http\Controllers\Swagger;
 
 use App\Http\Controllers\Controller;
 use App\Infra\Swagger\Swagger;
+use Illuminate\Http\JsonResponse;
 
 class SwaggerController extends Controller
 {
@@ -51,16 +52,17 @@ class SwaggerController extends Controller
      *     ),
      * )
      */
-    public function docs()
+    public function docs(): JsonResponse
     {
         try {
-            $docBlocksPath = '/var/www/html/app/Http/Controllers/';
+            $docBlocksPath = base_path('app/Http/Controllers');
 
             $swagger = (new Swagger())->setDocBlocksPath($docBlocksPath);
+            $documentation = $swagger->generateDocumentation();
 
-            return $swagger->generateDocumentation();
+            return response()->json($documentation);
         } catch (\Exception $e) {
-            $this->buildBadRequestResponse($e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 }

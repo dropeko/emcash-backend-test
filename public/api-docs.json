@@ -1,0 +1,185 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "User Management API",
+        "version": "2"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000"
+        }
+    ],
+    "paths": {
+        "/api-docs": {
+            "get": {
+                "tags": [
+                    "Swagger"
+                ],
+                "summary": "Retorna a documentação da API em formato JSON",
+                "operationId": "c4ea103bfc78938753dfaa740961915d",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "openapi": {
+                                            "type": "string"
+                                        },
+                                        "info": {
+                                            "type": "integer"
+                                        },
+                                        "servers": {
+                                            "type": "string"
+                                        },
+                                        "paths": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user/spreadsheet": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Geração dos dados dos usuários registrados em formato CSV",
+                "operationId": "08c6214886b8b6f4b8336b5ada31d3a1",
+                "responses": {
+                    "200": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "csv": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "example": {
+                                        "csv": "name,cpf,email\\nRonaldo de Assis Moreira,16742019077,drnaoseioque@email.com\\n"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Importação de usuário através de arquivo CSV",
+                "operationId": "3b92306356b96afc344e4f4dfffa4528",
+                "requestBody": {
+                    "content": {
+                        "text/csv": {
+                            "schema": {
+                                "properties": {
+                                    "file": {
+                                        "type": "string",
+                                        "default": "Campo do tipo arquivo, com o nome 'file', que recebe o arquivo CSV com os dados dos usuários"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "created_users": {
+                                            "type": "string"
+                                        },
+                                        "date_time": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "example": {
+                                        "created_users": 2,
+                                        "date_time": "2023-12-28 04:10:10"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "bad_request": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "example": {
+                                        "bad_request": "Spreadsheet error: line 2 | CPF already created"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/user": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Listagem de todos os usuários cadastrados",
+                "operationId": "dbc5496b20c10cad363b06cb3a478b5b",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "email": {
+                                            "type": "string"
+                                        },
+                                        "cpf": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object",
+                                    "example": [
+                                        {
+                                            "id": "a38a7ac8-9295-33c2-8c0b-5767c1449bc3",
+                                            "name": "Ronaldo de Assis Moreira",
+                                            "email": "ro.naldinho@email.com",
+                                            "cpf": "2023-12-28 04:10:10"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
