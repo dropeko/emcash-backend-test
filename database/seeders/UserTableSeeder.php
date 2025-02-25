@@ -10,10 +10,13 @@ class UserTableSeeder extends Seeder
     /**
      * Run the database seeds.
      *
+     * Aqui, o seeder utiliza o factory para criar um registro de usuário
+     * com dados que obedecem as regras de negócio.
+     *
      * @return void
      */
     public function run()
     {
-        User::factory(1)->create();
+        User::factory(3)->create();
     }
 }
