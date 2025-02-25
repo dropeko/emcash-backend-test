@@ -257,6 +257,66 @@
                     }
                 }
             }
+        },
+        "/user/{id}/eligibility": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Retorna a elegibilidade do funcionário para solicitação de crédito consignado",
+                "description": "Retorna a elegibilidade do funcionário para solicitação de crédito consignado.",
+                "operationId": "a4a7e667c2a8380e5677f554743a820a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID do usuário",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Elegibility status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "eligible": {
+                                            "type": "boolean"
+                                        },
+                                        "reasons": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "User not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
