@@ -16,111 +16,100 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\DateTime;
 use App\Infra\Db\UserDb;
 use App\Infra\File\Csv\Csv;
+use App\Infra\Uuid\UuidGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
-{
-/**
- * @OA\Post(
- *     path="/user/spreadsheet",
- *     summary="Importação de usuário através de arquivo CSV novo",
- *     tags={"User"},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\MediaType(
- *             mediaType="multipart/form-data",
- *             @OA\Schema(
- *                 type="object",
- *                 required={"file"},
- *                 @OA\Property(
- *                     property="file",
- *                     type="string",
- *                     format="binary",
- *                     description="Campo do tipo arquivo, com o nome 'file', que recebe o arquivo CSV com os dados dos usuários"
- *                 )
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response="201",
- *         description="Created",
- *         @OA\MediaType(
- *             mediaType="application/json",
- *             @OA\Schema(
- *                 @OA\Property(
- *                     property="created_users",
- *                     type="string"
- *                 ),
- *                 @OA\Property(
- *                     property="date_time",
- *                     type="string"
- *                 ),
- *                 example={
- *                     "created_users": 2,
- *                     "date_time": "2023-12-28 04:10:10"
- *                 }
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response="404",
- *         description="Bad Request",
- *         @OA\MediaType(
- *             mediaType="application/json",
- *             @OA\Schema(
- *                 @OA\Property(
- *                     property="bad_request",
- *                     type="string"
- *                 ),
- *                 example={
- *                     "bad_request": "Spreadsheet error: line 2 | CPF already created"
- *                 }
- *             )
- *         )
- *     )
- * )
- */
+{   
+    private UserDb $userDb;
+
+    public function __construct(UserDb $userDb, UuidGenerator $uuidGenerator)
+    {
+        $this->userDb = $userDb;
+    }
+    /**
+     * @OA\Post(
+     *     path="/user/spreadsheet",
+     *     summary="Importação de usuário através de arquivo CSV novo",
+     *     tags={"User"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 required={"file"},
+     *                 @OA\Property(
+     *                     property="file",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Campo do tipo arquivo, com o nome 'file', que recebe o arquivo CSV com os dados dos usuários"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="201",
+     *         description="Created",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="created_users",
+     *                     type="string"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="date_time",
+     *                     type="string"
+     *                 ),
+     *                 example={
+     *                     "created_users": 2,
+     *                     "date_time": "2023-12-28 04:10:10"
+     *                 }
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="Bad Request",
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="bad_request",
+     *                     type="string"
+     *                 ),
+     *                 example={
+     *                     "bad_request": "Spreadsheet error: line 2 | CPF already created"
+     *                 }
+     *             )
+     *         )
+     *     )
+     * )
+     */
     public function spreadsheet(Request $request): JsonResponse
     {
         try {
-            // Validação do request para garantir que um arquivo foi enviado
             $this->validate($request, ['file' => 'required|file']);
-
+    
             $uploadedFile = $request->file('file');
-
-            // Cria a instância do CSV e configura suas propriedades
-            /** @var CsvInterface $csv */
+    
             $csv = new Csv();
             $csv->setDataValidator(new CsvDataValidator())
                 ->setMimeType($uploadedFile->getClientMimeType())
                 ->setSizeInBytes((string)$uploadedFile->getSize())
                 ->setContent($uploadedFile->getContent())
                 ->setExpectedHeaders(['name', 'cpf', 'email', 'data_admissao']);
-
-            // Opcional: você pode construir o array associativo a partir do conteúdo,
-            // se necessário para debugar ou validar o CSV antes de importar:
-            // $associativeArray = $csv->buildAssociativeArrayFromContent();
-
-            // Cria instâncias dos serviços de domínio e persistência
+    
             $userSpreadsheet = new UserSpreadsheet();
-            $userDb = new UserDb();
-
-            // Realiza a importação dos usuários a partir do conteúdo CSV
-            $createdCount = $userSpreadsheet->import($csv->getContent(), $userDb);
-
+            $createdCount = $userSpreadsheet->import($csv->getContent(), $this->userDb);
+    
             return $this->buildCreatedResponse([
                 'created_users' => $createdCount,
                 'date_time'     => DateTime::formatDateTime('now')
             ]);
-        } catch (DataValidationException | CsvHeadersValidation $e) {
-            return $this->buildBadRequestResponse($e->getMessage());
-        } catch (UserSpreadsheetException | DuplicatedDataException $e) {
-            return $this->buildBadRequestResponse($e->getMessage());
-        } catch (InvalidUserObjectException $e) {
-            return $this->buildBadRequestResponse($e->getMessage());
         } catch (\Exception $e) {
-            // Em ambiente de produção, você pode logar o erro e retornar uma mensagem genérica
             return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
         }
     }
@@ -170,20 +159,17 @@ class UserController extends Controller
     public function all(Request $request): JsonResponse
     {
         try {
-            $user = new User();
-
-            $users = $user->findAll();
-
+            $userDb = new UserDb();
+            $users = $userDb->findAll();
             $response = [];
-            foreach($users as $user) {
+            foreach ($users as $userItem) {
                 $response[] = [
-                    'id' => $user->getId(),
-                    'name' => $user->getName(),
-                    'email' => $user->getEmail(),
-                    'cpf' => $user->getCpf()
+                    'id'    => $userItem->getId(),
+                    'name'  => $userItem->getName(),
+                    'email' => $userItem->getEmail(),
+                    'cpf'   => $userItem->getCpf(),
                 ];
             }
-
             return $this->buildSuccessResponse($response);
         } catch (\Exception $e) {
             throw $e;
@@ -277,7 +263,7 @@ class UserController extends Controller
      *     )
      * )
      */
-    public function show(Request $request, string $id): JsonResponse
+    public function showById(Request $request, string $id): JsonResponse
     {
         try {
             $userDb = new UserDb();
