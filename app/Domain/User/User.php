@@ -9,25 +9,32 @@ use App\Exceptions\UserNotFoundException;
 
 class User
 {
-    private string $id;
-    private string $name;
-    private string $email;
-    private string $cpf;
-    private string $dateCreation;
-    private string $dateEdition;
-    private string $data_admissao;
+    private string $id = '';
+    private string $name = '';
+    private string $email = '';
+    private string $cpf = '';
+    private string $dateCreation = '';
+    private string $dateEdition = '';
+    private string $data_admissao = '';
     private ?string $company = null;
     private bool $active = true;
 
     private UserDataValidatorInterface $dataValidator;
-    private UuidGeneratorInterface $uuidGenerator;
     private UserPersistenceInterface $persistence;
 
-    public function __construct(UserPersistenceInterface $persistence)
-    {
+    public function __construct(
+        UserPersistenceInterface $persistence,
+    ) {
         $this->persistence = $persistence;
         $this->dataValidator = new \App\Domain\User\UserDataValidator();
     }
+    
+
+    public function findAll(): array
+    {
+        return $this->persistence->findAll($this);
+    }
+
 
     public function setDataValidator(UserDataValidatorInterface $dataValidator): User
     {
@@ -159,22 +166,19 @@ class User
 
     public function checkAlreadyCreatedCpf(): void
     {
-        // Implementar a lógica de verificação de CPF duplicado
+        if ($this->persistence->isCpfAlreadyCreated($this->cpf)) {
+            throw new DuplicatedDataException("CPF já cadastrado.");
+        }
     }
 
     public function checkAlreadyCreatedEmail(): void
     {
-        // Implementar a lógica de verificação de Email duplicado
-    }
-
-    public function findAll(): array
-    {
-        return $this->persistence->findAll($this);
+        if ($this->persistence->isEmailAlreadyCreated($this->email)) {
+            throw new DuplicatedDataException("E-mail já cadastrado.");
+        }
     }
 
     /**
-     * Cria um objeto User a partir de um registro do banco, sem disparar validações.
-     *
      * @param object $record
      * @param \App\Domain\User\UserPersistenceInterface $persistence
      * @return User
@@ -190,7 +194,6 @@ class User
         $user->data_admissao = $record->data_admissao ?? '';
         $user->company = $record->company ?? null;
         $user->active = isset($record->active) ? (bool)$record->active : true;
-        // Se necessário, também podemos atribuir as datas de criação e edição
         $user->dateCreation = $record->created_at ?? '';
         $user->dateEdition = $record->updated_at ?? '';
         return $user;

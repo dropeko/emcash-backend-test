@@ -23,16 +23,26 @@ class UserDb implements UserPersistenceInterface
 
     public function create(User $user): void
     {
-        DB::table(self::TABLE_NAME)->insert([
-            self::COLUMN_UUID       => $user->getId(),
-            self::COLUMN_NAME         => $user->getName(),
-            self::COLUMN_EMAIL        => $user->getEmail(),
-            self::COLUMN_CPF          => $user->getCpf(),
-            self::COLUMN_DATA_ADMISSAO  => $user->getDataAdmissao(),
-            self::COLUMN_COMPANY      => $user->getCompany(),
-            self::COLUMN_ACTIVE       => $user->isActive(),
-            self::COLUMN_CREATED_AT   => $user->getDateCreation(),
-        ]);
+        try {
+            DB::table(self::TABLE_NAME)->insert([
+                self::COLUMN_UUID       => $user->getId(),
+                self::COLUMN_NAME       => $user->getName(),
+                self::COLUMN_EMAIL      => $user->getEmail(),
+                self::COLUMN_CPF        => $user->getCpf(),
+                self::COLUMN_DATA_ADMISSAO => $user->getDataAdmissao(),
+                self::COLUMN_COMPANY    => $user->getCompany() ?? '',
+                self::COLUMN_ACTIVE     => $user->isActive(),
+                self::COLUMN_CREATED_AT => $user->getDateCreation(),
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Captura erros específicos do banco de dados (ex.: violação de chave única)
+            \Log::error("Erro ao criar usuário no banco de dados: " . $e->getMessage());
+            throw new \RuntimeException("Erro ao criar usuário: " . $e->getMessage());
+        } catch (\Exception $e) {
+            // Captura outros erros genéricos
+            \Log::error("Erro ao criar usuário: " . $e->getMessage());
+            throw new \RuntimeException("Erro ao criar usuário no banco de dados.");
+        }
     }
 
     /**
@@ -41,7 +51,7 @@ class UserDb implements UserPersistenceInterface
      * @param User $user
      * @return array
      */
-    public function findAll($user): array
+    public function findAll(): array
     {
         $users = [];
         $records = DB::table(self::TABLE_NAME)
@@ -88,9 +98,8 @@ class UserDb implements UserPersistenceInterface
      * @param User $user
      * @return bool
      */
-    public function isCpfAlreadyCreated(User $user): bool
+    public function isCpfAlreadyCreated(string $cpf): bool
     {
-        $cpf = $user->getCpf();
         $record = DB::table(self::TABLE_NAME)
             ->where(self::COLUMN_CPF, $cpf)
             ->whereNull(self::COLUMN_DELETED_AT)
