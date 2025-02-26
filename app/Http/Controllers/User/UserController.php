@@ -21,13 +21,14 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
-{   
+{
     private UserDb $userDb;
 
     public function __construct(UserDb $userDb, UuidGenerator $uuidGenerator)
     {
         $this->userDb = $userDb;
     }
+
     /**
      * @OA\Post(
      *     path="/user/spreadsheet",
@@ -71,40 +72,40 @@ class UserController extends Controller
      *         )
      *     ),
      *     @OA\Response(
-     *         response="404",
+     *         response="400",
      *         description="Bad Request",
      *         @OA\MediaType(
      *             mediaType="application/json",
      *             @OA\Schema(
      *                 @OA\Property(
-     *                     property="bad_request",
+     *                     property="message",
      *                     type="string"
      *                 ),
      *                 example={
-     *                     "bad_request": "Spreadsheet error: line 2 | CPF already created"
+     *                     "message": "Erro interno: Spreadsheet error: line 2 | CPF already created"
      *                 }
      *             )
      *         )
      *     )
      * )
      */
-    public function spreadsheet(Request $request): JsonResponse
+    public function importSpreadsheet(Request $request): JsonResponse
     {
         try {
             $this->validate($request, ['file' => 'required|file']);
-    
+
             $uploadedFile = $request->file('file');
-    
+
             $csv = new Csv();
             $csv->setDataValidator(new CsvDataValidator())
                 ->setMimeType($uploadedFile->getClientMimeType())
                 ->setSizeInBytes((string)$uploadedFile->getSize())
                 ->setContent($uploadedFile->getContent())
                 ->setExpectedHeaders(['name', 'cpf', 'email', 'data_admissao']);
-    
+
             $userSpreadsheet = new UserSpreadsheet();
             $createdCount = $userSpreadsheet->import($csv->getContent(), $this->userDb);
-    
+
             return $this->buildCreatedResponse([
                 'created_users' => $createdCount,
                 'date_time'     => DateTime::formatDateTime('now')
@@ -116,12 +117,55 @@ class UserController extends Controller
 
     /**
      * @OA\Get(
+     *     path="/user/spreadsheet",
+     *     summary="Geração dos dados dos usuários registrados em formato CSV",
+     *     tags={"User"},
+     *     @OA\Response(
+     *          response="200",
+     *          description="Success",
+     *          content={
+     *             @OA\MediaType(
+     *                 mediaType="application/json",
+     *                 @OA\Schema(
+     *                     @OA\Property(
+     *                         property="csv",
+     *                         type="string",
+     *                     ),
+     *                     example={
+     *                        "csv": "name,cpf,email\nRonaldo de Assis Moreira,16742019077,drnaoseioque@email.com\n"
+     *                     }
+     *                 )
+     *             )
+     *         }
+     *     ),
+     * )
+     */
+    public function exportSpreadsheet(Request $request): JsonResponse
+    {
+        try {
+            $userSpreadsheet = new UserSpreadsheet();
+            $content = $userSpreadsheet->export($this->userDb);
+
+            return $this->buildSuccessResponse([
+                'csv' => $content
+            ]);
+        } catch (DataValidationException | CsvEmptyContentException $e) {
+            return $this->buildBadRequestResponse($e->getMessage());
+        } catch (UserSpreadsheetException $e) {
+            return $this->buildBadRequestResponse($e->getMessage());
+        } catch (\Exception $e) {
+            return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * @OA\Get(
      *     path="/user",
      *     summary="Listagem de todos os usuários cadastrados",
      *     tags={"User"},
      *     @OA\Response(
-     *          response="201",
-     *          description="Created",
+     *          response="200",
+     *          description="Success",
      *          content={
      *             @OA\MediaType(
      *                 mediaType="application/json",
@@ -156,11 +200,10 @@ class UserController extends Controller
      *     ),
      * )
      */
-    public function all(Request $request): JsonResponse
+    public function findAllUsers(Request $request): JsonResponse
     {
         try {
-            $userDb = new UserDb();
-            $users = $userDb->findAll();
+            $users = $this->userDb->findAll();
             $response = [];
             foreach ($users as $userItem) {
                 $response[] = [
@@ -172,54 +215,10 @@ class UserController extends Controller
             }
             return $this->buildSuccessResponse($response);
         } catch (\Exception $e) {
-            throw $e;
+            return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
         }
     }
 
-    /**
-     * @OA\Get(
-     *     path="/user/spreadsheet",
-     *     summary="Geração dos dados dos usuários registrados em formato CSV",
-     *     tags={"User"},
-     *     @OA\Response(
-     *          response="200",
-     *          description="Created",
-     *          content={
-     *             @OA\MediaType(
-     *                 mediaType="application/json",
-     *                 @OA\Schema(
-     *                     @OA\Property(
-     *                         property="csv",
-     *                         type="string",
-     *                     ),
-     *                     example={
-     *                        "csv": "name,cpf,email\nRonaldo de Assis Moreira,16742019077,drnaoseioque@email.com\n"
-     *                     }
-     *                 )
-     *             )
-     *         }
-     *     ),
-     * )
-     */
-    public function createSpreadsheet(Request $request): JsonResponse
-    {
-        try {
-            $userDb = new \App\Infra\Db\UserDb();
-            $userSpreadsheet = new \App\Domain\File\UserSpreadsheet\UserSpreadsheet();
-    
-            $content = $userSpreadsheet->export($userDb);
-    
-            return $this->buildSuccessResponse([
-                'csv' => $content
-            ]);
-        } catch (DataValidationException | \App\Exceptions\CsvEmptyContentException $e) {
-            return $this->buildBadRequestResponse($e->getMessage());
-        } catch (\App\Exceptions\UserSpreadsheetException $e) {
-            return $this->buildBadRequestResponse($e->getMessage());
-        } catch (\Exception $e) {
-            throw $e;
-        }
-    }
 
     /**
      * Retorna os dados de um usuário específico por ID.
@@ -266,8 +265,7 @@ class UserController extends Controller
     public function showById(Request $request, string $id): JsonResponse
     {
         try {
-            $userDb = new UserDb();
-            $user = $userDb->findById($id);
+            $user = $this->userDb->findById($id);
             if (!$user) {
                 return $this->buildNotFoundResponse("User not found");
             }
@@ -286,7 +284,7 @@ class UserController extends Controller
         }
     }
 
-        /**
+    /**
      * Retorna a elegibilidade do funcionário para solicitação de crédito consignado.
      *
      * @OA\Get(
@@ -326,12 +324,11 @@ class UserController extends Controller
     public function eligibility(Request $request, string $id): JsonResponse
     {
         try {
-            $userDb = new UserDb();
-            $user = $userDb->findById($id);
+            $user = $this->userDb->findById($id);
             if (!$user) {
                 return $this->buildNotFoundResponse("User not found");
             }
-            // Calcula o tempo de serviço (em meses) a partir da data de admissão.
+
             $admissionDate = new \DateTime($user->getDataAdmissao());
             $now = new \DateTime();
             $interval = $admissionDate->diff($now);
@@ -339,27 +336,24 @@ class UserController extends Controller
             $eligible = true;
             $reasons = [];
 
-            // Regra 1: Deve ter mais de 6 meses de serviço.
             if ($months < 6) {
                 $eligible = false;
                 $reasons[] = "Employee must have more than 6 months of service.";
             }
-            // Regra 2: O funcionário deve estar ativo.
             if (!$user->isActive()) {
                 $eligible = false;
                 $reasons[] = "Employee is not active.";
             }
-            // Regra 3: O funcionário deve ter uma empresa cadastrada.
             if (empty($user->getCompany())) {
                 $eligible = false;
                 $reasons[] = "Employee is not registered in a partner company.";
             }
-            // Regra 4: O funcionário não pode ter sido admitido há mais de X anos (ex: 30 anos).
             $maxYears = 30;
             if ($interval->y > $maxYears) {
                 $eligible = false;
                 $reasons[] = "Employee was admitted more than {$maxYears} years ago.";
             }
+
             return $this->buildSuccessResponse([
                 'eligible' => $eligible,
                 'reasons'  => $eligible ? [] : $reasons,
@@ -369,7 +363,7 @@ class UserController extends Controller
         }
     }
 
-        /**
+    /**
      * Realiza o soft delete de um usuário.
      *
      * @OA\Delete(
@@ -408,12 +402,11 @@ class UserController extends Controller
     public function delete(Request $request, string $id): JsonResponse
     {
         try {
-            $userDb = new UserDb();
-            $user = $userDb->findById($id);
+            $user = $this->userDb->findById($id);
             if (!$user) {
                 return $this->buildNotFoundResponse("User not found");
             }
-            $userDb->softDelete($user);
+            $this->userDb->softDelete($user);
             return $this->buildSuccessResponse(["message" => "User soft deleted successfully"]);
         } catch (\Exception $e) {
             return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
@@ -475,28 +468,23 @@ class UserController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         try {
-            // Valida os dados enviados
             $this->validate($request, [
                 'name'  => 'required|string|max:100',
                 'cpf'   => 'required|string',
                 'email' => 'required|email|max:100',
             ]);
 
-            $userDb = new UserDb();
-            $user = $userDb->findById($id);
+            $user = $this->userDb->findById($id);
             if (!$user) {
                 return $this->buildNotFoundResponse("User not found");
             }
 
-            // Atualiza os dados
             $user->setName($request->input('name'));
             $user->setCpf($request->input('cpf'));
             $user->setEmail($request->input('email'));
 
-            // Chama o repositório para atualizar o registro
-            $userDb->update($user);
+            $this->userDb->update($user);
 
-            // Retorna os dados atualizados
             $response = [
                 'id'    => $user->getId(),
                 'name'  => $user->getName(),
@@ -507,27 +495,5 @@ class UserController extends Controller
         } catch (\Exception $e) {
             return $this->buildBadRequestResponse("Erro interno: " . $e->getMessage());
         }
-    }
-
-    // Métodos auxiliares de resposta - agora declarados como public
-    // Mover lógica dos métodos auxliares para a classe Controller
-    public function buildSuccessResponse($data, $status = 200): JsonResponse
-    {
-        return response()->json($data, $status);
-    }
-
-    public function buildBadRequestResponse($message, $status = 400): JsonResponse
-    {
-        return response()->json(['message' => $message], $status);
-    }
-
-    public function buildNotFoundResponse($message, $status = 404): JsonResponse
-    {
-        return response()->json(['message' => $message], $status);
-    }
-
-    public function buildCreatedResponse($data, $status = 201): JsonResponse
-    {
-        return response()->json($data, $status);
     }
 }

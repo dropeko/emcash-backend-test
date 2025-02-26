@@ -186,7 +186,7 @@ class User
     public static function fromRecord(object $record, $persistence): User
     {
         $user = new self($persistence);
-        // Atribuição direta dos valores
+        
         $user->id = $record->id;
         $user->name = $record->name;
         $user->cpf = $record->cpf;
