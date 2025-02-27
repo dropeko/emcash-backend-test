@@ -140,37 +140,38 @@ A estrutura do projeto está organizada da seguinte forma:
 
 ### Passo a Passo
 
-<!--
-1. **Clonar o repositório**  
-   git clone git@github.com:seu-usuario/nome-do-repositorio.git
--->
 
-1. **Clonar o repositório (usando chave SSH)**  
-   <!-- git clone git@github.com:seu-usuario/nome-do-repositorio.git -->
+1. **Clonar o repositório (usando chave SSH)** 
+   ```bash
+   git clone git@github.com:dropeko/emcash-backend-test.git
 
-2. **Instalar as dependências via Composer**  
-   <!-- composer install --ignore-platform-reqs -->
+2. **Instalar as dependências via Composer** 
+   ```bash
+   composer install --ignore-platform-reqs
 
-3. **Build e Execução dos Containers**  
-   <!-- docker-compose build  
-   docker-compose up -d -->
+3. **Build e Execução dos Containers** 
+   ```bash
+   docker-compose build  
+   docker-compose up -d
 
 4. **Acessar o Container e Executar Instalações**  
-   Entre no container:
-   <!-- docker exec -it um_api bash -->
+   ```bash
+   docker exec -it um_api bash
    
    Dentro do container, execute:
-   <!-- composer install --ignore-platform-reqs  
+   composer install --ignore-platform-reqs  
    php artisan migrate:reset  
-   php artisan migrate --seed -->
+   php artisan migrate --seed
 
 5. **Atualizar Documentação do Swagger**  
    Ainda dentro do container, gere a documentação:
-   <!-- ./vendor/bin/openapi --output ./public/api-docs.json ./app -->
+   ```bash
+   ./vendor/bin/openapi --output ./public/api-docs.json ./app
 
 6. **Executar os Testes**  
    Dentro do container, para rodar os testes:
-   <!-- vendor/bin/phpunit -->
+   ```bash
+   vendor/bin/phpunit
 
 7. **Acessar a Documentação do Swagger**  
    Abra seu navegador e acesse a rota configurada para os docs (por exemplo, `http://localhost:82/`).
@@ -179,9 +180,6 @@ A estrutura do projeto está organizada da seguinte forma:
 
 - **Validação e Tratamento de Exceções:**  
   A API implementa um sistema robusto de validação e tratamento de exceções, garantindo que erros como CSV vazio, cabeçalhos incorretos e dados duplicados sejam reportados de forma clara e precisa.
-
-- **Arquitetura Orientada a Domínio:**  
-  O projeto segue os princípios do Domain Driven Design (DDD), com uma clara separação entre domínio, infraestrutura e apresentação. Isso facilita a manutenção, escalabilidade e testabilidade do sistema.
 
 - **Testes Automatizados:**  
   Uma abrangente suíte de testes unitários e de integração garante a qualidade do código e permite um feedback rápido durante o desenvolvimento.
@@ -196,5 +194,14 @@ A estrutura do projeto está organizada da seguinte forma:
 
 Esta API foi desenvolvida com foco em clareza, manutenibilidade e escalabilidade, utilizando as melhores práticas de desenvolvimento em PHP com Laravel/Lumen. A implementação de uma arquitetura bem definida, aliada a testes automatizados e a um robusto sistema de validação, demonstra um alto nível técnico e diferencia este projeto no cenário competitivo.
 
-*Para dúvidas ou suporte, por favor, entre em contato.*
+---
+
+## 🙏 Agradecimentos
+- **Emcash** pelo desafio proposto.
+
+---
+
+Feito com 🧡 por **@phca.dev**
+
+
 
