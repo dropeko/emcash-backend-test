@@ -1,90 +1,65 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\File;
 
-use App\Domain\File\Csv\CsvDataValidator;
 use App\Domain\File\UserSpreadsheet\UserSpreadsheet;
-use App\Infra\File\Csv\Csv;
 use App\Infra\Memory\UserMemory;
 use App\Infra\Uuid\UuidGenerator;
+use App\Exceptions\CsvEmptyContentException;
+use App\Exceptions\CsvHeadersValidation;
+use App\Exceptions\UserSpreadsheetException;
+use App\Exceptions\DataValidationException;
+use App\Exceptions\DuplicatedDataException;
 use Tests\TestCase;
 
 class UserSpreadsheetTest extends TestCase
 {
-    public function testShouldThrowAnExceptionWhenTryToReadCsvFileWithHeadersNamesDifferentFromTheExpected(): void
+    public function testShouldThrowExceptionWhenCsvHeadersAreDifferent(): void
     {
         $userSpreadsheet = new UserSpreadsheet();
+        
+        $csvContent = "name2,cpf,email,data_admissao\n" .
+            "Paolo Maldini,29983872099,some@email.com,2020-01-01\n" .
+            "Andrea Pirlo,56663819038,some2@email.com,2020-01-01";
 
-        $csv = new Csv();
+        $userDb = new UserMemory();
 
-        $csv
-            ->setDataValidator(new CsvDataValidator())
-            ->setMimeType('text/csv')
-            ->setSizeInBytes(1000000)
-            ->setContent("name2,cpf,email\nPaolo Maldini,29983872099,some@email.com\nAndrea Pirlo,56663819038,some2@email.com\n")
-        ;
+        $this->expectException(CsvHeadersValidation::class);
+        $this->expectExceptionMessage("Cabeçalhos do CSV inválidos");
 
-        $userSpreadsheet
-            ->setUuidGenerator(new UuidGenerator())
-            ->setUserPersistence(new UserMemory())
-            ->setCsv($csv)
-        ;
-
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('The csv file is not valid');
-
-        $userSpreadsheet->buildUsersFromContent();
+        $userSpreadsheet->import($csvContent, $userDb);
     }
 
-    public function testShouldThrowAnExceptionWhenTryToReadCsvFileWithHeadersAmountDifferentFromTheExpected(): void
+    public function testShouldThrowExceptionWhenCsvHeadersAmountIsDifferent(): void
     {
         $userSpreadsheet = new UserSpreadsheet();
 
-        $csv = new Csv();
+        $csvContent = "name,cpf,email\n" .
+            "Paolo Maldini,29983872099,2020-01-01\n" .
+            "Andrea Pirlo,56663819038,2020-01-01";
 
-        $csv
-            ->setDataValidator(new CsvDataValidator())
-            ->setMimeType('text/csv')
-            ->setSizeInBytes(1000000)
-            ->setContent("name,cpf\nPaolo Maldini,29983872099\nAndrea Pirlo,56663819038\n")
-        ;
+        $userDb = new UserMemory();
 
-        $userSpreadsheet
-            ->setUuidGenerator(new UuidGenerator())
-            ->setUserPersistence(new UserMemory())
-            ->setCsv($csv)
-        ;
+        $this->expectException(CsvHeadersValidation::class);
+        $this->expectExceptionMessage("Cabeçalhos do CSV inválidos");
 
-        $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('The csv file is not valid');
-
-        $userSpreadsheet->buildUsersFromContent();
+        $userSpreadsheet->import($csvContent, $userDb);
     }
 
     public function testShouldCorrectlyBuildUsersFromContent(): void
     {
         $userSpreadsheet = new UserSpreadsheet();
 
-        $csv = new Csv();
+        $csvContent = "name,cpf,email,data_admissao\n" .
+            "Paolo Maldini,29983872099,some@email.com,2020-01-01\n" .
+            "Andrea Pirlo,56663819038,some2@email.com,2020-01-01";
 
-        $csv
-            ->setDataValidator(new CsvDataValidator())
-            ->setMimeType('text/csv')
-            ->setSizeInBytes(1000000)
-            ->setContent("name,cpf,email\nPaolo Maldini,29983872099,some@email.com\nAndrea Pirlo,56663819038,some2@email.com\n")
-        ;
+        $userDb = new UserMemory();
 
-        $userSpreadsheet
-            ->setUuidGenerator(new UuidGenerator())
-            ->setUserPersistence(new UserMemory())
-            ->setCsv($csv)
-        ;
+        $createdCount = $userSpreadsheet->import($csvContent, $userDb);
 
-        $users = $userSpreadsheet->buildUsersFromContent();
-
-        $this->assertSame(
-            count($users),
-            2
-        );
+        $this->assertSame(2, $createdCount);
     }
 }

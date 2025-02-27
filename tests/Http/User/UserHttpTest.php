@@ -23,7 +23,7 @@ class UserHttpTest extends TestCase
         $this->faker = Faker\Factory::create();
 
         $this->user = User::create([
-            'uuid' => $this->faker->uuid(),
+            'id' => $this->faker->uuid(),
             'name' => $this->faker->name(),
             'email' => $this->faker->email(),
             'cpf' => self::VALID_CPF
@@ -42,7 +42,7 @@ class UserHttpTest extends TestCase
         $response->assertStatus(self::HTTP_SUCCESS_STATUS);
         $response->assertJson([
             [
-                'uuid' => $this->user->uuid,
+                'id' => $this->user->id,
                 'name' => $this->user->name,
                 'email' => $this->user->email,
                 'cpf' => $this->user->cpf

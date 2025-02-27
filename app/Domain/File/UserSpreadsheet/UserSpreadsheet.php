@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\File\UserSpreadsheet;
 
 use App\Domain\User\User;
-use App\Infra\Db\UserDb;
+use App\Domain\User\UserPersistenceInterface;
 use App\Infra\Uuid\UuidGenerator;
 use App\Exceptions\CsvEmptyContentException;
 use App\Exceptions\CsvHeadersValidation;
@@ -20,12 +20,11 @@ class UserSpreadsheet
     protected $expectedHeaders = ['name', 'cpf', 'email', 'data_admissao'];
     protected $minAdmissionMonths = 6;
 
-    public function import(string $csvContent, UserDb $userDb): int
+    public function import(string $csvContent, UserPersistenceInterface $userDb): int
     {
         if (empty(trim($csvContent))) {
             throw new CsvEmptyContentException("O CSV está vazio.");
         }
-
 
         $lines = array_filter(
             explode("\n", $csvContent),
@@ -48,7 +47,7 @@ class UserSpreadsheet
 
         $createdCount = 0;
         $importedCpfs = [];
-        $uuidGenerator = new \App\Infra\Uuid\UuidGenerator();
+        $uuidGenerator = new UuidGenerator();
 
         foreach ($lines as $lineNumber => $line) {
             $data = str_getcsv($line);
@@ -86,7 +85,7 @@ class UserSpreadsheet
                 throw new DuplicatedDataException("Linha " . ($lineNumber + 2) . ": CPF", $cpf);
             }
 
-            $user = new \App\Domain\User\User($userDb);
+            $user = new User($userDb);
             $user->setId($uuidGenerator->generate());
             $user->setName($name);
             $user->setCpf($cpf);
@@ -105,7 +104,7 @@ class UserSpreadsheet
         return $createdCount;
     }
 
-    public function export(UserDb $userDb): string
+    public function export(UserPersistenceInterface $userDb): string
     {
         $users = $userDb->findAll();
 
