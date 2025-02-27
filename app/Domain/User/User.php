@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User;
 
 use App\Domain\Uuid\UuidGeneratorInterface;
@@ -23,18 +25,16 @@ class User
     private UserPersistenceInterface $persistence;
 
     public function __construct(
-        UserPersistenceInterface $persistence,
+        UserPersistenceInterface $persistence
     ) {
         $this->persistence = $persistence;
         $this->dataValidator = new \App\Domain\User\UserDataValidator();
     }
-    
 
     public function findAll(): array
     {
         return $this->persistence->findAll($this);
     }
-
 
     public function setDataValidator(UserDataValidatorInterface $dataValidator): User
     {
@@ -186,14 +186,13 @@ class User
     public static function fromRecord(object $record, $persistence): User
     {
         $user = new self($persistence);
-        // Atribuição direta dos valores
         $user->id = $record->id;
         $user->name = $record->name;
         $user->cpf = $record->cpf;
         $user->email = $record->email;
         $user->data_admissao = $record->data_admissao ?? '';
         $user->company = $record->company ?? null;
-        $user->active = isset($record->active) ? (bool)$record->active : true;
+        $user->active = isset($record->active) ? (bool) $record->active : true;
         $user->dateCreation = $record->created_at ?? '';
         $user->dateEdition = $record->updated_at ?? '';
         return $user;

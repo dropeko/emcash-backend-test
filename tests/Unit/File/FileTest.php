@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Unit\File;
 
 use App\Domain\File\Csv\CsvDataValidator;
@@ -13,13 +15,12 @@ class FileTest extends TestCase
         $file = (new File())
             ->setDataValidator(new CsvDataValidator())
             ->setMimeType('text/csv')
-            ->setSizeInBytes(1000000)
+            ->setSizeInBytes("1000000")
             ->setContent("
                 name,cpf,email
                 Paolo Maldini,29983872099,some@email.com
                 Andrea Pirlo,56663819038,some2@email.com
-            ")
-        ;
+            ");
 
         $this->assertNotEmpty($file->getContent());
     }
@@ -49,7 +50,7 @@ class FileTest extends TestCase
         $file = (new File())->setDataValidator(new CsvDataValidator());
 
         $this->expectException(\Exception::class);
-        $this->expectExceptionMessage('The file Content cannot be empty');
+        $this->expectExceptionMessage('The file content cannot be empty');
 
         $file->setContent('');
     }
@@ -61,7 +62,7 @@ class FileTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('The file size is not valid');
 
-        $file->setSizeInBytes(0);
+        $file->setSizeInBytes("0");
     }
 
     public function testShouldThrowAnExceptionWhenTryToSetTooBigSizeInBytes(): void
@@ -71,6 +72,6 @@ class FileTest extends TestCase
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('The file size is not valid');
 
-        $file->setSizeInBytes(1000001);
+        $file->setSizeInBytes("1000001");
     }
 }

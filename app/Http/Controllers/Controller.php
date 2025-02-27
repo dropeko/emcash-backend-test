@@ -7,9 +7,10 @@ use Laravel\Lumen\Routing\Controller as BaseController;
 
 class Controller extends BaseController
 {
-    public const HTTP_SUCCESS_STATUS = 400;
-    public const HTTP_CREATED_STATUS = 500;
-    public const HTTP_BAD_REQUEST_STATUS = 201;
+    public const HTTP_SUCCESS_STATUS = 200;
+    public const HTTP_CREATED_STATUS = 201;
+    public const HTTP_BAD_REQUEST_STATUS = 400;
+    public const HTTP_NOT_FOUND_STATUS = 404;
 
     public function buildBadRequestResponse(string $errorMessage): JsonResponse
     {
@@ -36,6 +37,14 @@ class Controller extends BaseController
             self::HTTP_SUCCESS_STATUS,
             [],
             JSON_UNESCAPED_SLASHES|JSON_PRETTY_PRINT
+        );
+    }
+
+    public function buildNotFoundResponse(string $message): JsonResponse
+    {
+        return response()->json(
+            ['message' => $message],
+            self::HTTP_NOT_FOUND_STATUS
         );
     }
 }

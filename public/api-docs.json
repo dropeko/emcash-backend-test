@@ -51,10 +51,10 @@
                     "User"
                 ],
                 "summary": "Geração dos dados dos usuários registrados em formato CSV",
-                "operationId": "08c6214886b8b6f4b8336b5ada31d3a1",
+                "operationId": "fc1920753236d546c52bf135fa5b8fe1",
                 "responses": {
                     "200": {
-                        "description": "Created",
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -78,7 +78,7 @@
                     "User"
                 ],
                 "summary": "Importação de usuário através de arquivo CSV novo",
-                "operationId": "3b92306356b96afc344e4f4dfffa4528",
+                "operationId": "6f6a2080a06eae2c2bf6a0289370d77c",
                 "requestBody": {
                     "required": true,
                     "content": {
@@ -122,19 +122,19 @@
                             }
                         }
                     },
-                    "404": {
+                    "400": {
                         "description": "Bad Request",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "bad_request": {
+                                        "message": {
                                             "type": "string"
                                         }
                                     },
                                     "type": "object",
                                     "example": {
-                                        "bad_request": "Spreadsheet error: line 2 | CPF already created"
+                                        "message": "Erro interno: Spreadsheet error: line 2 | CPF already created"
                                     }
                                 }
                             }
@@ -149,10 +149,10 @@
                     "User"
                 ],
                 "summary": "Listagem de todos os usuários cadastrados",
-                "operationId": "dbc5496b20c10cad363b06cb3a478b5b",
+                "operationId": "50160ab043f475c07e037978caaa01e6",
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "Success",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -193,7 +193,7 @@
                 ],
                 "summary": "Retorna os dados de um usuário específico por ID",
                 "description": "Retorna os dados de um usuário específico por ID.",
-                "operationId": "df8a91e01ad660f9fb7ab052c8f49f7c",
+                "operationId": "8e0284cc490469ddd7949f9446e2eec6",
                 "parameters": [
                     {
                         "name": "id",
