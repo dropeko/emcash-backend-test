@@ -16,7 +16,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Helpers\DateTime;
 use App\Infra\Db\UserDb;
 use App\Infra\File\Csv\Csv;
-use App\Infra\Uuid\UuidGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -24,7 +23,7 @@ class UserController extends Controller
 {
     private UserDb $userDb;
 
-    public function __construct(UserDb $userDb, UuidGenerator $uuidGenerator)
+    public function __construct(UserDb $userDb)
     {
         $this->userDb = $userDb;
     }
@@ -332,6 +331,7 @@ class UserController extends Controller
             $admissionDate = new \DateTime($user->getDataAdmissao());
             $now = new \DateTime();
             $interval = $admissionDate->diff($now);
+            $maxYears = 30;
             $months = $interval->y * 12 + $interval->m;
             $eligible = true;
             $reasons = [];
@@ -348,7 +348,7 @@ class UserController extends Controller
                 $eligible = false;
                 $reasons[] = "Employee is not registered in a partner company.";
             }
-            $maxYears = 30;
+            
             if ($interval->y > $maxYears) {
                 $eligible = false;
                 $reasons[] = "Employee was admitted more than {$maxYears} years ago.";

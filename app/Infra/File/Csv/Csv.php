@@ -41,7 +41,6 @@ class Csv extends File implements CsvInterface
      */
     public function buildAssociativeArrayFromContent(): array
     {
-        // Divide o conteúdo em linhas e remove linhas vazias
         $lines = array_filter(explode("\n", $this->getContent()), function ($line) {
             return trim($line) !== '';
         });
@@ -50,11 +49,9 @@ class Csv extends File implements CsvInterface
             return [];
         }
 
-        // A primeira linha deve conter os cabeçalhos
         $headerLine = array_shift($lines);
         $headers = str_getcsv($headerLine);
-
-        // Se cabeçalhos esperados foram definidos, valide-os
+  
         if (!empty($this->expectedHeaders) && $headers !== $this->expectedHeaders) {
             throw new \Exception("CSV headers inválidos. Esperado: " . implode(',', $this->expectedHeaders));
         }
@@ -62,9 +59,9 @@ class Csv extends File implements CsvInterface
         $result = [];
         foreach ($lines as $line) {
             $values = str_getcsv($line);
-            // Se houver discrepância entre número de colunas, podemos lançar uma exceção ou ignorar a linha
+            
             if (count($values) !== count($headers)) {
-                continue; // ou lançar exceção: throw new \Exception("Linha com número inválido de colunas.");
+                continue; 
             }
             $result[] = array_combine($headers, $values);
         }
@@ -107,7 +104,6 @@ class Csv extends File implements CsvInterface
             return;
         }
 
-        // Assume que as chaves do primeiro registro representam os cabeçalhos
         $headers = array_keys(reset($this->associativeContent));
         $lines = [];
         $lines[] = implode(',', $headers);
@@ -116,8 +112,4 @@ class Csv extends File implements CsvInterface
         }
         $this->setContent(implode("\n", $lines));
     }
-
-    /**
-     * O método getContent() é herdado da classe File.
-     */
 }
