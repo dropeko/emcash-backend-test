@@ -192,7 +192,7 @@ A estrutura do projeto está organizada da seguinte forma:
 
 ## Considerações Finais
 
-Esta API foi desenvolvida com foco em clareza, manutenibilidade e escalabilidade, utilizando as melhores práticas de desenvolvimento em PHP com Laravel/Lumen. A implementação de uma arquitetura bem definida, aliada a testes automatizados e a um robusto sistema de validação, demonstra um alto nível técnico e diferencia este projeto no cenário competitivo.
+Esta API foi desenvolvida com foco em clareza, manutenibilidade e escalabilidade, utilizando as melhores práticas de desenvolvimento em PHP com Laravel/Lumen. A implementação de uma arquitetura bem definida, aliada a testes automatizados e a um  sistema de validação.
 
 ---
 
